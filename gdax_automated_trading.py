@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[2]:
+# In[ ]:
 
 import gdax
 import time
@@ -11,7 +11,7 @@ import pandas as pd
 public_client = gdax.PublicClient()
 
 
-# In[2]:
+# In[ ]:
 
 # Get the order book at the default level.
 #public_client.get_product_order_book('BTC-GBP')
@@ -19,32 +19,33 @@ public_client = gdax.PublicClient()
 #public_client.get_product_order_book('BTC-GBP', level=1)
 
 
-# In[3]:
+# In[ ]:
 
 # Get the product ticker for a specific product.
 public_client.get_product_ticker(product_id='BTC-GBP')
 
 
-# In[4]:
+# In[ ]:
 
 # Get the product trades for a specific product.
 #public_client.get_product_trades(product_id='BTC-GBP')
 
 
-# In[5]:
+# In[ ]:
 
 public_client.get_product_historic_rates('BTC-GBP')
 # To include other parameters, see function docstring:
 public_client.get_product_historic_rates('BTC-GBP', granularity=3000)
 
 
-# In[10]:
+# In[ ]:
 
+# login text file... see readme
 login = pd.read_csv(r'C:\dev\gdax\login.txt')
 auth_client = gdax.AuthenticatedClient(login["BLANK LINE"][1], login["BLANK LINE"][2], login["BLANK LINE"][0])
 
 
-# In[32]:
+# In[ ]:
 
 def placeBuyOrSellOrder():
 
@@ -106,8 +107,9 @@ def placeBuyOrSellOrder():
         
 
 
-# In[33]:
+# In[ ]:
 
+# trigger object
 while 1<2:
     placeBuyOrSellOrder()
     time.sleep(30)
