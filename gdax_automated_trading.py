@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 import pandas as pd
 import sys
+
 public_client = gdax.PublicClient()
 
 
@@ -35,17 +36,20 @@ if sys.platform == 'linux':
 
 else:
     print("windows")
-   # login = pd.read_csv(r'C:\dev\gdax\login.txt')
+    login = pd.read_csv(r'C:\dev\gdax\login.txt')
 
 
 
 auth_client = gdax.AuthenticatedClient(login["BLANK LINE"][1], login["BLANK LINE"][2], login["BLANK LINE"][0])
 
+algoFreq = 30 # seconds
 
-def placeBuyOrSellOrder():
+def placeBuyOrSellOrder(algoFreq):
 
     running = input
+
     tradingActive = False
+
 
     # define fiat account
     gbp_acc = auth_client.get_account(login["BLANK LINE"][3])
@@ -75,7 +79,12 @@ def placeBuyOrSellOrder():
     # create sell price
     min_sell_price = price_ask*1.0125
     target_sell = str(round(max(min_sell_price,price_bid*1.0125),2))
-    
+
+
+
+
+
+
     # BUY if funds availble
     if float(gbp_acc["available"]) > latest_price*btc_trade_vol*btc_trade_margin:
         
@@ -102,13 +111,13 @@ def placeBuyOrSellOrder():
 
     else:
         
-        time.sleep(30)
+        time.sleep(algoFreq)
                 
     
 
 
 # trigger object
 while 1<2:
-    placeBuyOrSellOrder()
-    time.sleep(30)
+    placeBuyOrSellOrder(algoFreq)
+    time.sleep(algoFreq)
 
