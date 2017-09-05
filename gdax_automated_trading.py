@@ -30,7 +30,6 @@ public_client.get_product_historic_rates('BTC-GBP', granularity=3000)
 if sys.platform == 'linux':
     print("linux")
     login = pd.read_csv('/home/richard/dev/login.txt')
-
 else:
     print("windows")
     login = pd.read_csv(r'C:\dev\gdax\login.txt')
@@ -46,9 +45,12 @@ def placeBuyOrSellOrder(algoFreq):
 
     # define fiat account
     gbp_acc = auth_client.get_account(login["BLANK LINE"][3])
+    eur_acc = auth_client.get_account(login["BLANK LINE"][6])
 
-    # define cyrpto account
+    # define cyrpto accounts
     btc_acc = auth_client.get_account(login["BLANK LINE"][4])
+    eth_acc = auth_client.get_account(login["BLANK LINE"][5])
+    ltc_acc = auth_client.get_account(login["BLANK LINE"][7])
 
     # get market price
     latest_price = float(public_client.get_product_ticker(product_id='BTC-GBP')["price"])
@@ -57,6 +59,13 @@ def placeBuyOrSellOrder(algoFreq):
     price_ask = float(public_client.get_product_ticker(product_id='BTC-GBP')["ask"])
     price_bid = float(public_client.get_product_ticker(product_id='BTC-GBP')["bid"])
     mid_market = (price_ask + price_bid) * 0.5
+
+
+    ## order book
+    #order_book = public_client.get_product_order_book('BTC-GBP', level=1)
+    order_book = public_client.get_product_order_book('BTC-GBP', level=2)
+    #order_book = public_client.get_product_order_book('BTC-GBP', level=3)
+    #print(order_book)
 
     # amount of crypto to trade
     btc_trade_vol = 0.05
@@ -96,11 +105,11 @@ def placeBuyOrSellOrder(algoFreq):
             print(str(target_sell))
 
 
-    time.sleep(algoFreq)
+    #time.sleep(algoFreq)
 
 
 
-algoFreq = 5  # seconds
+algoFreq = 2  # seconds
 
 while 1 < 2:
     placeBuyOrSellOrder(algoFreq)
