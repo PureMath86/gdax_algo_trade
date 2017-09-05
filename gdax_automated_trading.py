@@ -52,8 +52,14 @@ def placeBuyOrSellOrder(algoFreq):
     eth_acc = auth_client.get_account(login["BLANK LINE"][5])
     ltc_acc = auth_client.get_account(login["BLANK LINE"][7])
 
-    # get market price
+    # get market prices
     latest_price = float(public_client.get_product_ticker(product_id='BTC-GBP')["price"])
+    # public_client.get_product_ticker(product_id='BTC-EUR')
+    # public_client.get_product_ticker(product_id='ETH-EUR')
+    # public_client.get_product_ticker(product_id='LTC-EUR')
+
+    # public_client.get_product_ticker(product_id='ETH-BTC')
+    # public_client.get_product_ticker(product_id='LTC-BTC')
 
     # get market prices
     price_ask = float(public_client.get_product_ticker(product_id='BTC-GBP')["ask"])
