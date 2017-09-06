@@ -1,4 +1,7 @@
 import gdax
+import time
+import datetime
+import csv
 
 public_client = gdax.PublicClient()
 
@@ -27,36 +30,45 @@ def currArb(public_client):
     ltc2btc = float(ltc_btc["bid"])
 
     #### PATH 1A ####
-    path_1a = 1 * eur2btc * btc2eth * eth2eur
+    eur_btc_eth_eur = 1 * eur2btc * btc2eth * eth2eur
 
     #### PATH 1B ####
-    path_1b = 1 * eur2eth * eth2btc * btc2eur
+    eur_eth_btc_eur = 1 * eur2eth * eth2btc * btc2eur
 
     #### PATH 2A ####
-    path_2a = 1 * eur2btc * btc2ltc * ltc2eur
+    eur_btc_ltc_eur = 1 * eur2btc * btc2ltc * ltc2eur
 
     #### PATH 2B ####
-    path_2b = 1 * eur2ltc * ltc2btc * btc2eur
+    eur_ltc_btc_eur = 1 * eur2ltc * ltc2btc * btc2eur
+
+    arb_paths = ["eur_btc_eth_eur", "eur_eth_btc_eur", "eur_btc_ltc_eur", "eur_ltc_btc_eur"]
+    arb_values = [eur_btc_eth_eur,eur_eth_btc_eur,eur_btc_ltc_eur,eur_ltc_btc_eur]
 
 
-    return str((max(path_1a,path_1b,path_2a,path_2b)-1)*100)
+    arb_dict = dict(zip(arb_paths, arb_values))
+    arb_max = max(arb_dict, key=arb_dict.get)
+
+
+    i = datetime.datetime.now()
+
+    # write to local csv
+    fields=[i.isoformat(),arb_max,str(max(arb_values)),str(eur2btc),str(btc2eur),str(eur2eth),str(eth2eur),str(eur2ltc),str(ltc2eur),str(btc2eth),str(eth2btc),str(btc2ltc),str(ltc2btc)]
+
+    with open(r'C:\dev\gdax.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+
+
+    time.sleep(5)
 
 
 
 
 
 
-print(currArb(public_client))
-
-
-
-
-
-
-
-
-
-
+while 0 < 1:
+    currArb(public_client)
+    print("Complete")
 
 
 
