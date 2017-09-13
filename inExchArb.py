@@ -2,6 +2,7 @@ import gdax
 import time
 import datetime
 import csv
+import sys
 
 public_client = gdax.PublicClient()
 
@@ -54,23 +55,22 @@ def currArb(public_client):
     # write to local csv
     fields=[i.isoformat(),arb_max,str(max(arb_values)),str(eur2btc),str(btc2eur),str(eur2eth),str(eth2eur),str(eur2ltc),str(ltc2eur),str(btc2eth),str(eth2btc),str(btc2ltc),str(ltc2btc)]
 
-    with open(r'C:\dev\gdax.csv', 'a') as f:
+    #with open(r'C:\dev\gdax.csv', 'a') as f:
+    with open(r'C:\dev\gdax.csv', 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(fields)
 
+    time.sleep(15)
 
-    time.sleep(5)
-
-
-
-
-
-
+i = 0
 while 0 < 1:
-    currArb(public_client)
-    print("Complete")
-
-
+    try:
+        currArb(public_client)
+        #print(str(i), end="\r")
+    except:
+        e = sys.exc_info()[0]
+        print(e)
+        time.sleep(60)
 
 
 #### PATH 3A ####
