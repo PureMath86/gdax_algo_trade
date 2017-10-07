@@ -1,122 +1,114 @@
-# coding: utf-8
-
-
 import gdax
-import time
-from datetime import datetime
+# import time
+# from datetime import datetime
 import pandas as pd
-import sys
-
-public_client = gdax.PublicClient()
-
-# Get the order book at the default level.
-# public_client.get_product_order_book('BTC-GBP')
-# Get the order book at a specific level.
-# public_client.get_product_order_book('BTC-GBP', level=1)
-
-# Get the product ticker for a specific product.
-public_client.get_product_ticker(product_id='BTC-GBP')
-
-# Get the product trades for a specific product.
-# public_client.get_product_trades(product_id='BTC-GBP')
+# import sys
 
 
-public_client.get_product_historic_rates('BTC-GBP')
-# To include other parameters, see function docstring:
-public_client.get_product_historic_rates('BTC-GBP', granularity=3000)
+class CryptoTrade:
+    def __init__(self, name):
 
-# login text file... see readme
+        self.name = name
+        self.login = pd.read_csv(r'C:\dev\gdax\login.txt')
+        self.auth_client = gdax.AuthenticatedClient(
+            self.login["BLANK LINE"][1],
+            self.login["BLANK LINE"][2],
+            self.login["BLANK LINE"][0])
 
-if sys.platform == 'linux':
-    print("linux")
-    login = pd.read_csv('/home/richard/dev/login.txt')
-else:
-    print("windows")
-    login = pd.read_csv(r'C:\dev\gdax\login.txt')
+        self.public_client = gdax.PublicClient()
+        self.acc_db = self.get_all_acc()
 
-auth_client = gdax.AuthenticatedClient(login["BLANK LINE"][1], login["BLANK LINE"][2], login["BLANK LINE"][0])
+    def get_all_acc(self):
+        acc_list = self.auth_client.get_accounts()
 
+        acc_db = {}
+        for entry in acc_list:
+            name = entry.pop("currency")
+            acc_db[name] = entry
 
-def placeBuyOrSellOrder(algoFreq):
-    tradingActive = False
-    print("Trading Algo Active: " + str(tradingActive))
+        return acc_db
 
-    running = input
+    def get_acc_balance(self, currency):
+        acc_id = self.acc_db[currency]["id"]
+        return self.auth_client.get_account(acc_id)["balance"]
 
-    # define fiat account
-    gbp_acc = auth_client.get_account(login["BLANK LINE"][3])
-    eur_acc = auth_client.get_account(login["BLANK LINE"][6])
+    # def get_ask(self,product):
+    #     return float(self.public_client.get_product_ticker(product)["ask"])
 
-    # define cyrpto accounts
-    btc_acc = auth_client.get_account(login["BLANK LINE"][4])
-    eth_acc = auth_client.get_account(login["BLANK LINE"][5])
-    ltc_acc = auth_client.get_account(login["BLANK LINE"][7])
+    # def get_bid(self,product):
+    #     return float(self.public_client.get_product_ticker(product)["bid"])
 
-    # get market prices
-    latest_price = float(public_client.get_product_ticker(product_id='BTC-GBP')["price"])
-    # public_client.get_product_ticker(product_id='BTC-EUR')
-    # public_client.get_product_ticker(product_id='ETH-EUR')
-    # public_client.get_product_ticker(product_id='LTC-EUR')
+    def get_ask_bid(self, product):
+        ticker = self.public_client.get_product_ticker(product)
+        ask = float(ticker["ask"])
+        bid = float(ticker["bid"])
+        return {"ask": ask, "bid": bid}
 
-    # public_client.get_product_ticker(product_id='ETH-BTC')
-    # public_client.get_product_ticker(product_id='LTC-BTC')
+    # def get_target_ask(self, product):
+    #
+    #     bsg = 0.25  # buy/sell gain
+    #     max_buy_price = self.get_bid(product) * (1 - (bsg / 100))
+    #     min_sell_price = self.get_ask(product) * (1 + (bsg / 100))
+    #
+    #     return round(max(max_buy_price, min_sell_price), 2)
 
-    # get market prices
-    price_ask = float(public_client.get_product_ticker(product_id='BTC-GBP')["ask"])
-    price_bid = float(public_client.get_product_ticker(product_id='BTC-GBP')["bid"])
-    mid_market = (price_ask + price_bid) * 0.5
+    # def get_target_bid(self,product):
+    #
+    #     bsg = 0.25  # buy/sell gain
+    #     max_buy_price = self.get_bid(product) * (1 - (bsg / 100))
+    #     min_sell_price = self.get_ask(product) * (1 + (bsg / 100))
+    #
+    #     return round(min(max_buy_price, min_sell_price), 2)
 
+    def get_targets(self, product):
 
-    ## order book
-    #order_book = public_client.get_product_order_book('BTC-GBP', level=1)
-    order_book = public_client.get_product_order_book('BTC-GBP', level=2)
-    #order_book = public_client.get_product_order_book('BTC-GBP', level=3)
-    #print(order_book)
+        bsg = 0.25  # buy/sell gain
+        # max_buy_price = self.get_bid(product) * (1 - (bsg / 100))
+        # min_sell_price = self.get_ask(product) * (1 + (bsg / 100))
+        g_s_b = self.get_ask_bid(product)
 
-    # amount of crypto to trade
-    btc_trade_vol = 0.05
+        max_buy_price = g_s_b["bid"] * (1 - (bsg / 100))
+        min_sell_price = g_s_b["ask"] * (1 + (bsg / 100))
+        target_ask = round(max(max_buy_price, min_sell_price), 2)
+        target_bid = round(min(max_buy_price, min_sell_price), 2)
+        return {"target_ask": target_ask, "target_bid": target_bid}
 
-    # margin as factor before purchase for crypto reserve
-    btc_trade_margin = 1.0
+    def trade_market_maker(self, product):
 
-    # create buy price
-    max_buy_price = price_bid * 0.9825
-    target_buy = str(round(min(max_buy_price, price_bid * 0.9875), 2))
+        trade_size = 0.05
 
-    # create sell price
-    min_sell_price = price_ask * 1.0125
-    target_sell = str(round(max(min_sell_price, price_bid * 1.0125), 2))
+        # a = float(self.get_ask(product))
+        # b = float(self.get_bid(product))
+        ask_bid = self.get_ask_bid(product)
+        a = float(ask_bid["ask"])
+        b = float(ask_bid["bid"])
+        # t_a = float(self.get_target_ask(product))
+        # t_b = float(self.get_target_bid(product))
+        targets = self.get_targets(product)
+        t_a = float(targets["target_ask"])
+        t_b = float(targets["target_bid"])
 
-    # BUY if funds availble
-    if float(gbp_acc["available"]) > latest_price * btc_trade_vol * btc_trade_margin:
-        print('BUY order £' + target_buy + " : Mid Market £" + str(mid_market) + " : " + str(datetime.now()))
+        fiat_acc = float(self.get_acc_balance(product.split(sep="-")[1]))  # EUR
+        cryp_acc = float(self.get_acc_balance(product.split(sep="-")[0]))  # ETH
 
-        if tradingActive == True:
-            auth_client.buy(price=target_buy,size=btc_trade_vol,product_id='BTC-GBP')
+        if fiat_acc > t_a * trade_size:
+            print("Buy Crypto Possible")
+            print("Ask: " + str(a) + " and Target Ask " + str(t_a))
+            print("Bid: " + str(b) + " and Target Bid " + str(t_b))
+            # self.auth_client.buy(price=t_b, size=trade_size, product_id=product)
         else:
-            print(str(target_buy))
+            print("Insufficient Balance")
+            # self.auth_client.sell(price=t_a, size=trade_size, product_id=product)
 
-    # SELL if BTC availble
-    else:
-        if float(btc_acc["available"]) > btc_trade_vol:
-
-            print('SELL order ' + target_sell + " : Bid Market £" + str(price_bid) + " : " + str(datetime.now()))
-
-            if tradingActive == True:
-
-                auth_client.sell(price=target_sell,
-                         size=str(btc_trade_vol),  # BTC
-                         product_id='BTC-GBP')
+        if cryp_acc > trade_size:
+            print("Sell Crypto Possible")
+            print("Ask: " + str(a) + " and Target Ask " + str(t_a))
+            print("Bid: " + str(b) + " and Target Bid " + str(t_b))
         else:
-            print(str(target_sell))
+            print("Insufficient Balance")
+            # self.auth_client.sell(price=t_a, size=trade_size, product_id=product)
 
 
-    #time.sleep(algoFreq)
+# trade = CryptoTrade("trade")
+# trade.trade_market_maker("ETH-EUR")
 
-
-
-algoFreq = 2  # seconds
-
-while 1 < 2:
-    placeBuyOrSellOrder(algoFreq)
-    time.sleep(algoFreq)

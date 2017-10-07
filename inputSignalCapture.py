@@ -29,19 +29,17 @@ def getHFTdata(public_client):
     bids_df = bids_df.astype(float)
     bids_df["cum-val"] = bids_df["size"].cumsum()
 
-    # save to xls
-
-
-    fileName = 'C:\dev\gdax_data\gdax_book_'+ str(int(time.time())) +'.xlsx'
+    fileName = "C:\dev\gdax_data" + "\gdax_book_"+ str(int(time.time()))+".xlsx"
 
     writer = pd.ExcelWriter(fileName)
     asks_df.to_excel(writer,'asks_df')
     bids_df.to_excel(writer,'bids_df')
+
     trades_df.to_excel(writer,'trades_df')
 
     writer.save()
 
-    time.sleep(15)
+    time.sleep(59)
 
 
 
@@ -49,8 +47,8 @@ i = 0
 while 0 < 1:
     try:
         getHFTdata(public_client)
-        print(str(i), end="\r")
-        i += 1
+        # print(str(i), end="\r")
+        # i += 1
     except:
         e = sys.exc_info()[0]
         print(e)
